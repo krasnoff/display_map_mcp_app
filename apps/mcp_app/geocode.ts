@@ -1,4 +1,5 @@
-const NOMINATIM_SEARCH_URL = "https://nominatim.openstreetmap.org/search";
+const NOMINATIM_SEARCH_URL = process.env.NOMINATIM_SEARCH_URL ??
+  "https://nominatim.openstreetmap.org/search";
 const NOMINATIM_USER_AGENT = process.env.NOMINATIM_USER_AGENT ?? "openstreetmap-mcp-app/1.0";
 
 const geocodingCache = new Map<string, GeocodingResult>();

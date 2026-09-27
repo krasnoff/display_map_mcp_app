@@ -5,13 +5,13 @@
   "private": true,
   "main": "dist-server/mcp.js",
   "scripts": {
-    "dev": "tsx watch mcp.ts",
+    "dev": "tsx watch --env-file-if-exists=.env mcp.ts",
     "build:ui": "vite build",
     "generate:html": "tsx scripts/generate-html.ts",
     "build:server": "tsc -p tsconfig.server.json",
     "build": "pnpm build:ui && pnpm generate:html && pnpm build:server",
-    "serve": "node dist-server/mcp.js",
-    "start": "tsx mcp.ts",
+    "serve": "node --env-file-if-exists=.env dist-server/mcp.js",
+    "start": "tsx --env-file-if-exists=.env mcp.ts",
     "typecheck": "tsc -p tsconfig.server.json --noEmit"
   },
   "keywords": [],
