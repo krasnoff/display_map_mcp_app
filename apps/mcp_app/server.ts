@@ -94,7 +94,7 @@ export function registerServer(server: McpServer) {
           // this line is for debugging with mcp inspector only, but it is not needed for the app to work
           // domain: "openstreetmap-viewer",
           csp: {
-            resourceDomains: ["https://tile.openstreetmap.org"],
+            resourceDomains: ["https://api.maptiler.com"],
           },
         },
       },

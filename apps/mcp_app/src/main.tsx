@@ -57,7 +57,7 @@ function MapApp() {
   return (
     <main className="page-shell">
       {status && <p className="status" role="status">{status}</p>}
-      <GNUIMap {...bounds} />
+      <GNUIMap {...bounds} maptilerApiKey={import.meta.env.MAPTILER_API_KEY} />
     </main>
   );
 }

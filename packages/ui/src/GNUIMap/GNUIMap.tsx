@@ -10,6 +10,7 @@ type MapProps = {
   south: number;
   east: number;
   west: number;
+  maptilerApiKey: string;
 };
 
 function MapBounds({ bounds }: { bounds: LatLngBoundsExpression }) {
@@ -22,12 +23,13 @@ function MapBounds({ bounds }: { bounds: LatLngBoundsExpression }) {
   return null;
 }
 
-export function GNUIMap({ north, south, east, west }: MapProps) {
+export function GNUIMap({ north, south, east, west, maptilerApiKey }: MapProps) {
   // Leaflet coordinates are [latitude, longitude].
   const bounds: LatLngBoundsExpression = [
     [south, west], // southwest corner
     [north, east], // northeast corner
   ];
+  const tileUrl = `https://api.maptiler.com/maps/streets-v2/{z}/{x}/{y}.png?key=${encodeURIComponent(maptilerApiKey)}`;
 
   return (
     <MapContainer
@@ -36,9 +38,9 @@ export function GNUIMap({ north, south, east, west }: MapProps) {
     >
       <MapBounds bounds={bounds} />
       <TileLayer
-        url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+        url={tileUrl}
         referrerPolicy="origin"
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>'
+        attribution='&copy; <a href="https://www.maptiler.com/copyright/">MapTiler</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>'
       />
     </MapContainer>
   );

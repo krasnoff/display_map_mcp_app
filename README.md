@@ -66,8 +66,7 @@ Set your MapTiler API key in `apps/mcp_app/.env`:
 MAPTILER_API_KEY=your_maptiler_api_key
 ```
 
-The key is used by the `geocode-place` tool. The interactive map continues to
-use OpenStreetMap tiles.
+The key is used by both the `geocode-place` tool and the MapTiler tile layer.
 
 Build and start the compiled MCP server:
 
@@ -192,7 +191,7 @@ Important MCP application files:
 
 ## Map services
 
-Map tiles are loaded from OpenStreetMap's standard tile service and include visible OpenStreetMap contributor attribution. Place searches use MapTiler Geocoding and require `MAPTILER_API_KEY`. Deployments should comply with the applicable OpenStreetMap tile and MapTiler usage policies.
+Map tiles and place searches use MapTiler and require `MAPTILER_API_KEY`. Map data attribution remains visible in the map. Deployments should comply with the applicable MapTiler and OpenStreetMap usage policies.
 
 ## License
 
