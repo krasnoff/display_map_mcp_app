@@ -1,6 +1,6 @@
-const NOMINATIM_SEARCH_URL = process.env.NOMINATIM_SEARCH_URL ??
-  "https://nominatim.openstreetmap.org/search";
-const NOMINATIM_USER_AGENT = process.env.NOMINATIM_USER_AGENT ?? "openstreetmap-mcp-app/1.0";
+const MAPTILER_GEOCODING_URL = process.env.MAPTILER_GEOCODING_URL ??
+  "https://api.maptiler.com/geocoding";
+const MAPTILER_API_KEY = process.env.MAPTILER_API_KEY;
 
 const geocodingCache = new Map<string, GeocodingResult>();
 
@@ -14,20 +14,10 @@ type GeocodingResult = {
   west: number;
 };
 
-let nextNominatimRequestAt = 0;
-
-async function waitForNominatimRateLimit() {
-  const now = Date.now();
-  const delay = Math.max(0, nextNominatimRequestAt - now);
-  nextNominatimRequestAt = now + delay + 1_000;
-
-  if (delay > 0) {
-    await new Promise((resolve) => setTimeout(resolve, delay));
-  }
-}
-
 function parseCoordinate(value: unknown, minimum: number, maximum: number) {
-  const coordinate = typeof value === "string" ? Number(value) : Number.NaN;
+  const coordinate = typeof value === "number" || typeof value === "string"
+    ? Number(value)
+    : Number.NaN;
   return Number.isFinite(coordinate) && coordinate >= minimum && coordinate <= maximum
     ? coordinate
     : undefined;
@@ -38,58 +28,70 @@ export async function geocodePlace(placeName: string): Promise<GeocodingResult |
   const cachedResult = geocodingCache.get(cacheKey);
   if (cachedResult) return cachedResult;
 
-  await waitForNominatimRateLimit();
+  if (!MAPTILER_API_KEY) {
+    throw new Error("MAPTILER_API_KEY is not configured.");
+  }
 
-  const url = new URL(NOMINATIM_SEARCH_URL);
-  url.searchParams.set("q", placeName);
-  url.searchParams.set("format", "jsonv2");
+  const baseUrl = `${MAPTILER_GEOCODING_URL.replace(/\/$/, "")}/`;
+  const url = new URL(`${encodeURIComponent(placeName)}.json`, baseUrl);
+  url.searchParams.set("key", MAPTILER_API_KEY);
   url.searchParams.set("limit", "1");
 
   const response = await fetch(url, {
-    headers: {
-      Accept: "application/json",
-      "User-Agent": NOMINATIM_USER_AGENT,
-    },
+    headers: { Accept: "application/json" },
     signal: AbortSignal.timeout(10_000),
   });
 
   if (!response.ok) {
-    throw new Error(`Nominatim returned HTTP ${response.status}.`);
+    throw new Error(`MapTiler returned HTTP ${response.status}.`);
   }
 
   const payload: unknown = await response.json();
-  if (!Array.isArray(payload) || payload.length === 0) return undefined;
+  if (!payload || typeof payload !== "object") {
+    throw new Error("MapTiler returned an invalid response.");
+  }
 
-  const candidate: unknown = payload[0];
+  const features = (payload as Record<string, unknown>).features;
+  if (!Array.isArray(features)) {
+    throw new Error("MapTiler returned an invalid feature collection.");
+  }
+  if (features.length === 0) return undefined;
+
+  const candidate: unknown = features[0];
   if (!candidate || typeof candidate !== "object") {
-    throw new Error("Nominatim returned an invalid search result.");
+    throw new Error("MapTiler returned an invalid search result.");
   }
 
   const result = candidate as Record<string, unknown>;
-  const boundingBox = result.boundingbox;
-  const latitude = parseCoordinate(result.lat, -90, 90);
-  const longitude = parseCoordinate(result.lon, -180, 180);
+  const center = result.center;
+  const boundingBox = result.bbox;
 
+  if (!Array.isArray(center) || center.length !== 2) {
+    throw new Error("MapTiler did not return a valid center.");
+  }
   if (!Array.isArray(boundingBox) || boundingBox.length !== 4) {
-    throw new Error("Nominatim did not return a valid bounding box.");
+    throw new Error("MapTiler did not return a valid bounding box.");
   }
 
-  // Nominatim bounding boxes are ordered: south, north, west, east.
-  const south = parseCoordinate(boundingBox[0], -90, 90);
-  const north = parseCoordinate(boundingBox[1], -90, 90);
-  const west = parseCoordinate(boundingBox[2], -180, 180);
-  const east = parseCoordinate(boundingBox[3], -180, 180);
+  // MapTiler centers are [longitude, latitude] and bounding boxes are
+  // [west, south, east, north].
+  const longitude = parseCoordinate(center[0], -180, 180);
+  const latitude = parseCoordinate(center[1], -90, 90);
+  const west = parseCoordinate(boundingBox[0], -180, 180);
+  const south = parseCoordinate(boundingBox[1], -90, 90);
+  const east = parseCoordinate(boundingBox[2], -180, 180);
+  const north = parseCoordinate(boundingBox[3], -90, 90);
 
   if (
     latitude === undefined || longitude === undefined || south === undefined ||
     north === undefined || west === undefined || east === undefined ||
     south > north || west > east
   ) {
-    throw new Error("Nominatim returned invalid coordinates.");
+    throw new Error("MapTiler returned invalid coordinates.");
   }
 
   const geocodedResult = {
-    displayName: typeof result.display_name === "string" ? result.display_name : placeName,
+    displayName: typeof result.place_name === "string" ? result.place_name : placeName,
     latitude,
     longitude,
     north,

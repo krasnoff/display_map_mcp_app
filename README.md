@@ -60,6 +60,15 @@ The MCP build performs three steps:
 
 ## Run locally
 
+Set your MapTiler API key in `apps/mcp_app/.env`:
+
+```text
+MAPTILER_API_KEY=your_maptiler_api_key
+```
+
+The key is used by the `geocode-place` tool. The interactive map continues to
+use OpenStreetMap tiles.
+
 Build and start the compiled MCP server:
 
 ```bash
@@ -181,9 +190,9 @@ Important MCP application files:
 - `apps/mcp_app/src/main.tsx` initializes the embedded MCP App UI.
 - `packages/ui/src/GNUIMap/GNUIMap.tsx` renders the Leaflet/OpenStreetMap map.
 
-## OpenStreetMap services
+## Map services
 
-Map tiles are loaded from OpenStreetMap's standard tile service and include visible OpenStreetMap contributor attribution. Place searches use the OpenStreetMap Nominatim service. Deployments should comply with the applicable OpenStreetMap tile and Nominatim usage policies.
+Map tiles are loaded from OpenStreetMap's standard tile service and include visible OpenStreetMap contributor attribution. Place searches use MapTiler Geocoding and require `MAPTILER_API_KEY`. Deployments should comply with the applicable OpenStreetMap tile and MapTiler usage policies.
 
 ## License
 
