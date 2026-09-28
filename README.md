@@ -14,10 +14,10 @@ The map interface is a React application packaged as a single HTML MCP resource.
 The public server is available at:
 
 ```text
-https://display-mcp-app-apps-sdk.vercel.app/mcp
+https://display-map-mcp-apps-sdk.vercel.app/mcp
 ```
 
-[Connect to the hosted OpenStreetMap MCP server](https://display-mcp-app-apps-sdk.vercel.app/mcp)
+[Connect to the hosted OpenStreetMap MCP server](https://display-map-mcp-apps-sdk.vercel.app/mcp)
 
 The URL is an MCP endpoint, not a conventional web page. Open it through an MCP-compatible client rather than expecting a browser interface.
 
@@ -134,7 +134,7 @@ Claude.ai can connect to the hosted server as a custom remote MCP connector. The
 5. Enter the remote MCP server URL:
 
    ```text
-   https://display-mcp-app-apps-sdk.vercel.app/mcp
+   https://display-map-mcp-apps-sdk.vercel.app/mcp
    ```
 
 6. Leave the OAuth fields in **Advanced settings** empty and select **Add**.
