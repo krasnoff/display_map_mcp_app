@@ -1,6 +1,28 @@
 import { StreamableHTTPTransport } from "@hono/mcp";
+import { SUPPORTED_PROTOCOL_VERSIONS } from "@modelcontextprotocol/sdk/types.js";
 import { Hono, type Handler } from "hono";
+import { HTTPException } from "hono/http-exception";
 import { createServer } from "./server.js";
+
+const PROTOCOL_VERSION_HEADER = "mcp-protocol-version";
+
+function normalizeProtocolVersionHeader(context: Parameters<Handler>[0]) {
+  const value = context.req.header(PROTOCOL_VERSION_HEADER);
+  if (!value || SUPPORTED_PROTOCOL_VERSIONS.includes(value)) return;
+
+  // Repeated HTTP headers can be collapsed to a comma-separated value by a
+  // proxy. @hono/mcp expects one version and otherwise rejects the request.
+  const supportedValue = value
+    .split(",")
+    .map((version) => version.trim())
+    .find((version) => SUPPORTED_PROTOCOL_VERSIONS.includes(version));
+
+  if (!supportedValue) return;
+
+  const headers = new Headers(context.req.raw.headers);
+  headers.set(PROTOCOL_VERSION_HEADER, supportedValue);
+  context.req.raw = new Request(context.req.raw, { headers });
+}
 
 export function createHttpApp(mcpPaths: string | string[] = "/mcp") {
   const app = new Hono();
@@ -31,6 +53,8 @@ export function createHttpApp(mcpPaths: string | string[] = "/mcp") {
   }
 
   const handleMcpRequest: Handler = async (context) => {
+    normalizeProtocolVersionHeader(context);
+
     const server = createServer();
     const transport = new StreamableHTTPTransport({
       sessionIdGenerator: undefined,
@@ -48,6 +72,32 @@ export function createHttpApp(mcpPaths: string | string[] = "/mcp") {
       }, 500);
     } catch (error) {
       console.error("MCP request failed", error);
+
+      if (error instanceof HTTPException) {
+        const protocolVersion = context.req.header(PROTOCOL_VERSION_HEADER);
+
+        if (error.status !== 404 || !protocolVersion) {
+          const response = error.getResponse();
+          return new Response(response.body, {
+            status: error.status,
+            headers: response.headers,
+          });
+        }
+
+        return context.json({
+          jsonrpc: "2.0",
+          error: {
+            code: -32000,
+            message: protocolVersion
+              ? "Bad Request: Unsupported protocol version"
+              : "Bad MCP request",
+            data: protocolVersion
+              ? { receivedVersion: protocolVersion, supportedVersions: SUPPORTED_PROTOCOL_VERSIONS }
+              : undefined,
+          },
+          id: null,
+        }, 400);
+      }
       return context.json({
         jsonrpc: "2.0",
         error: { code: -32603, message: "Internal server error" },
