@@ -63,7 +63,7 @@ export function registerServer(server: McpServer) {
 
   registerAppTool(server, "open-map", {
     title: "Open map",
-    description: "Display an interactive OpenStreetMap map for the supplied geographic bounds.",
+    description: "Display an interactive displaymap map for the supplied geographic bounds.",
     inputSchema: {
       north: z.number().min(-90).max(90).describe("Northern latitude of the map bounds"),
       south: z.number().min(-90).max(90).describe("Southern latitude of the map bounds"),
@@ -82,8 +82,8 @@ export function registerServer(server: McpServer) {
     };
   });
 
-  registerAppResource(server, "OpenStreetMap map", RESOURCE_URI, {
-    description: "Interactive OpenStreetMap map",
+  registerAppResource(server, "displaymap map", RESOURCE_URI, {
+    description: "Interactive displaymap map",
   }, async () => ({
     contents: [{
       uri: RESOURCE_URI,
@@ -92,7 +92,7 @@ export function registerServer(server: McpServer) {
       _meta: {
         ui: {
           // this line is for debugging with mcp inspector only, but it is not needed for the app to work
-          // domain: "openstreetmap-viewer",
+          // domain: "displaymap-viewer",
           csp: {
             resourceDomains: ["https://api.maptiler.com"],
           },
@@ -106,6 +106,6 @@ export function registerServer(server: McpServer) {
 
 export function createServer() {
   return registerServer(
-    new McpServer({ name: "openstreetmap-viewer", version: "1.0.0" }),
+    new McpServer({ name: "displaymap-viewer", version: "1.0.0" }),
   );
 }

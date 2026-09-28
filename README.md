@@ -1,11 +1,11 @@
-# OpenStreetMap MCP App Server
+# DisplayMap MCP App Server
 
-An [MCP App](https://modelcontextprotocol.io/) server that lets compatible AI clients find places and display interactive maps using OpenStreetMap.
+An [MCP App](https://modelcontextprotocol.io/) server that lets compatible AI clients find places and display interactive maps using DisplayMap.
 
 The server exposes two MCP tools:
 
 - `geocode-place` converts a place name into coordinates and map bounds.
-- `open-map` displays an interactive OpenStreetMap map for supplied bounds.
+- `open-map` displays an interactive DisplayMap map for supplied bounds.
 
 The map interface is a React application packaged as a single HTML MCP resource. The MCP server uses Streamable HTTP and runs on Hono with the Model Context Protocol TypeScript SDK.
 
@@ -17,7 +17,7 @@ The public server is available at:
 https://display-map-mcp-apps-sdk.vercel.app/mcp
 ```
 
-[Connect to the hosted OpenStreetMap MCP server](https://display-map-mcp-apps-sdk.vercel.app/mcp)
+[Connect to the hosted DisplayMap MCP server](https://display-map-mcp-apps-sdk.vercel.app/mcp)
 
 The URL is an MCP endpoint, not a conventional web page. Open it through an MCP-compatible client rather than expecting a browser interface.
 
@@ -130,7 +130,7 @@ Claude.ai can connect to the hosted server as a custom remote MCP connector. The
 1. Open [Claude.ai](https://claude.ai/new) and sign in.
 2. Navigate to **Customize**, then **Connectors**.
 3. Select **+**, then **Add custom connector**.
-4. Enter `OpenStreetMap` as the connector name.
+4. Enter `Display Map` as the connector name.
 5. Enter the remote MCP server URL:
 
    ```text
@@ -150,7 +150,7 @@ An Owner or Primary Owner must first add the connector for the organization:
 3. Hover over **Custom** and select **Web**.
 4. Enter the hosted MCP URL shown above and finish adding the connector.
 
-Organization members can then navigate to **Customize**, then **Connectors**, find the OpenStreetMap connector, and select **Connect**.
+Organization members can then navigate to **Customize**, then **Connectors**, find the DisplayMap connector, and select **Connect**.
 
 ### Enable and use the connector
 
@@ -158,7 +158,7 @@ Connectors are enabled separately for each conversation:
 
 1. Start a new conversation in Claude.ai.
 2. Select the **+** button in the lower-left corner of the chat.
-3. Open **Connectors** and enable **OpenStreetMap**.
+3. Open **Connectors** and enable **DisplayMap**.
 4. Ask Claude:
 
    ```text
@@ -187,11 +187,11 @@ Important MCP application files:
 - `apps/mcp_app/mcp.ts` starts the local Node.js server.
 - `apps/mcp_app/api/mcp.ts` provides the Vercel Function entry point.
 - `apps/mcp_app/src/main.tsx` initializes the embedded MCP App UI.
-- `packages/ui/src/GNUIMap/GNUIMap.tsx` renders the Leaflet/OpenStreetMap map.
+- `packages/ui/src/GNUIMap/GNUIMap.tsx` renders the Leaflet/DisplayMap map.
 
 ## Map services
 
-Map tiles and place searches use MapTiler and require `MAPTILER_API_KEY`. Map data attribution remains visible in the map. Deployments should comply with the applicable MapTiler and OpenStreetMap usage policies.
+Map tiles and place searches use MapTiler and require `MAPTILER_API_KEY`. Map data attribution remains visible in the map. Deployments should comply with the applicable MapTiler and DisplayMap usage policies.
 
 ## License
 

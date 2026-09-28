@@ -29,7 +29,7 @@ export function createHttpApp(mcpPaths: string | string[] = "/mcp") {
   const paths = Array.isArray(mcpPaths) ? mcpPaths : [mcpPaths];
 
   app.get("/", (context) => context.json({
-    name: "openstreetmap-viewer",
+    name: "displaymap-viewer",
     mcp: "/mcp",
   }));
 

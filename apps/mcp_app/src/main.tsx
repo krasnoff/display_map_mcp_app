@@ -32,7 +32,7 @@ function MapApp() {
   const [status, setStatus] = useState("");
 
   useEffect(() => {
-    const app = new McpApp({ name: "OpenStreetMap viewer", version: "1.0.0" });
+    const app = new McpApp({ name: "displaymap viewer", version: "1.0.0" });
 
     app.ontoolinput = (input) => {
       if (isMapBounds(input.arguments)) {

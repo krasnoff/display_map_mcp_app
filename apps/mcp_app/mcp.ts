@@ -9,5 +9,5 @@ serve({
   hostname: "127.0.0.1",
   port,
 }, (info) => {
-  console.log(`OpenStreetMap MCP server: http://127.0.0.1:${info.port}/mcp`);
+  console.log(`displaymap MCP server: http://127.0.0.1:${info.port}/mcp`);
 });
