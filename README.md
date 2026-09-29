@@ -121,6 +121,41 @@ Or check only the MCP server:
 pnpm --filter @workspace/mcp_app typecheck
 ```
 
+## Connect from ChatGPT
+
+ChatGPT can connect to the hosted server as a remote MCP connection. The server does not require authentication.
+
+### Enable developer mode
+
+1. Open [ChatGPT](https://chatgpt.com/) and sign in.
+2. Open **Settings**, then select **Security and login**.
+3. Turn on **Developer mode**.
+
+Developer mode availability can depend on your account and workspace policy.
+
+### Add the MCP server
+
+1. Go to [ChatGPT Plugins](https://chatgpt.com/plugins).
+2. Select the **+** button.
+3. Enter `Display Map` as the name and a short description such as `Find places and display interactive maps`.
+4. Under **Connection**, enter the remote MCP server URL:
+
+   ```text
+   https://display-map-mcp-apps-sdk.vercel.app/mcp
+   ```
+
+5. Create the connection and review the discovered tools.
+
+Start a new conversation, add **Display Map** from the tools menu, and ask:
+
+```text
+Find Paris, France and open an interactive map of it.
+```
+
+ChatGPT should call `geocode-place`, pass the returned bounds to `open-map`, and display the interactive map. See OpenAI's [official connection and testing guide](https://developers.openai.com/plugins/deploy/connect-chatgpt) for current details.
+
+> ChatGPT must be able to reach the MCP server over HTTPS. Use the hosted endpoint above rather than `localhost`.
+
 ## Connect from Claude.ai
 
 Claude.ai can connect to the hosted server as a custom remote MCP connector. The server does not require authentication.
