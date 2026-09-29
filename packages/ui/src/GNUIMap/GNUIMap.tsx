@@ -29,16 +29,20 @@ export function GNUIMap({ north, south, east, west, maptilerApiKey }: MapProps) 
     [south, west], // southwest corner
     [north, east], // northeast corner
   ];
-  const tileUrl = `https://api.maptiler.com/maps/streets-v2/{z}/{x}/{y}.png?key=${encodeURIComponent(maptilerApiKey)}`;
+  const tileUrl = `https://api.maptiler.com/maps/streets-v4/{z}/{x}/{y}@2x.png?key=${encodeURIComponent(maptilerApiKey)}`;
 
   return (
     <MapContainer
       bounds={bounds}
+      minZoom={1}
       style={{ height: "600px", width: "100%" }}
     >
       <MapBounds bounds={bounds} />
       <TileLayer
         url={tileUrl}
+        tileSize={512}
+        zoomOffset={-1}
+        detectRetina={false}
         referrerPolicy="origin"
         attribution='&copy; <a href="https://www.maptiler.com/copyright/">MapTiler</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>'
       />
