@@ -39,7 +39,8 @@ export async function geocodePlace(placeName: string): Promise<GeocodingResult |
 
   const response = await fetch(url, {
     headers: { 
-      Accept: "application/json"
+      Accept: "application/json",
+      Origin: "https://display-map-mcp-apps-sdk.vercel.app/",
     },
     signal: AbortSignal.timeout(10_000),
   });
