@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { MapContainer, TileLayer, useMap } from "react-leaflet";
-// The stylesheet is loaded by the bundler; TypeScript does not have declarations for CSS files.
-// @ts-ignore
+// @ts-expect-error CSS files are loaded by the bundler and lack TypeScript declarations.
 import "leaflet/dist/leaflet.css";
 import { LatLngBoundsExpression } from "leaflet";
 import { DEFAULT_MAP_STYLE, MAP_STYLE_GROUPS } from "./mapStyles";

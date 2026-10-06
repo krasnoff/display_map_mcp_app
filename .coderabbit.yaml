@@ -1,0 +1,81 @@
+# yaml-language-server: $schema=https://www.coderabbit.ai/integrations/schema.v2.json
+
+language: en-US
+tone_instructions: >-
+  Be concise and actionable. Prioritize correctness, security, and regressions.
+  Ground findings in the changed code and avoid unrelated refactors or speculative abstractions.
+
+reviews:
+  profile: chill
+  request_changes_workflow: false
+  high_level_summary: true
+  collapse_walkthrough: true
+  poem: false
+  in_progress_fortune: false
+  enable_prompt_for_ai_agents: true
+
+  auto_review:
+    enabled: true
+    drafts: false
+
+  path_filters:
+    - "!**/node_modules/**"
+    - "!**/dist/**"
+    - "!**/dist-server/**"
+    - "!apps/mcp_app/generated/**"
+    - "!**/.turbo/**"
+    - "!**/.vercel/**"
+    - "!**/*.tsbuildinfo"
+    - "!**/.env"
+    - "!**/.env.*"
+    - "**/.env.example"
+    - "**/.env.sample"
+
+  path_instructions:
+    - path: "apps/mcp_app/**"
+      instructions: >-
+        Follow the root and workspace AGENTS.md. Review MCP input/output schemas,
+        structured results, tool descriptions, and UI expectations together.
+        Preserve ui://map/app.html and the single HTML resource build sequence.
+        Check host argument validation, connection lifecycle, asynchronous errors,
+        CSP domains, stateless HTTP behavior, and parity between local and Vercel routes.
+        Preserve server-side .js import extensions. Treat the browser MapTiler key
+        as public restricted configuration while preventing disclosure of other secrets.
+        The server typecheck does not check the React UI; host rendering requires a compatible client.
+
+    - path: "apps/apps_sdk/**"
+      instructions: >-
+        Follow the workspace AGENTS.md. This is a standalone React/Vite preview
+        whose current shell does not render the shared map. Keep reusable map
+        behavior in packages/ui and MCP host integration in apps/mcp_app.
+        Check browser environment handling, StrictMode-safe effects, accessibility,
+        and the root mount element. Do not assume MCP build configuration applies here.
+
+    - path: "packages/ui/**"
+      instructions: >-
+        Follow the workspace AGENTS.md. Preserve public exports and map props.
+        Leaflet coordinates are latitude then longitude, with southwest and
+        northeast corners derived from named bounds. Check bounds updates after
+        mount, style switching, tile size and zoom settings, accessible controls,
+        and visible attribution. Consider both consuming applications and their
+        styles. Keep host integration and environment loading outside this package.
+
+    - path: "packages/utils/**"
+      instructions: >-
+        Follow the workspace AGENTS.md. This package's Nominatim geocoder is
+        separate from the active MCP MapTiler geocoder and is currently unused by
+        the applications. Check response validation, no-match versus error behavior,
+        cache normalization, request spacing, timeout, and identifying User-Agent.
+        Nominatim bounds are south, north, west, east. The current tsconfig includes
+        src but the exported implementation is utils.ts; do not assume workspace
+        builds or typechecks cover it. Avoid live provider calls for routine tests.
+
+    - path: "**/AGENTS.md"
+      instructions: >-
+        Check guidance against actual source, package scripts, and workspace scope.
+        Prefer focused instructions that supplement parent guidance. Do not require
+        application builds for documentation-only edits or invent validation commands.
+
+knowledge_base:
+  code_guidelines:
+    enabled: true

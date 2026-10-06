@@ -121,6 +121,20 @@ Or check only the MCP server:
 pnpm --filter @workspace/mcp_app typecheck
 ```
 
+## Lint
+
+Run ESLint across the workspace from the repository root:
+
+```bash
+pnpm lint
+```
+
+The root `eslint.config.js` checks JavaScript, TypeScript, and React Hooks,
+with browser and Node.js globals scoped to the relevant source files. Generated
+HTML modules, build output, and dependencies are excluded. Unused variables and
+Hook dependency issues are reported as warnings. Linting is separate from the
+TypeScript checks above.
+
 ## Connect from ChatGPT
 
 ChatGPT can connect to the hosted server as a remote MCP connection. The server does not require authentication.
