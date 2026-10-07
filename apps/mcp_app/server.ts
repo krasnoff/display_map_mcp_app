@@ -18,7 +18,7 @@ const APP_HTML_PATH = resolve(
 export function registerServer(server: McpServer) {
   server.registerTool("geocode-place", {
     title: "Find place coordinates",
-    description: "Convert a place name into coordinates and geographic bounds. Pass north, south, east, and west from the result to the open-map tool.",
+    description: "Convert a place name into coordinates and geographic bounds. Pass north, south, east, and west from the result to open-map, and use [latitude, longitude] as its position.",
     inputSchema: {
       placeName: z.string().trim().min(1).max(300).describe("Place to find, for example: Paris, France"),
     },
@@ -48,7 +48,7 @@ export function registerServer(server: McpServer) {
       return {
         content: [{
           type: "text",
-          text: `Found ${result.displayName}. Use north ${result.north}, south ${result.south}, east ${result.east}, and west ${result.west} with open-map.`,
+          text: `Found ${result.displayName}. Use north ${result.north}, south ${result.south}, east ${result.east}, west ${result.west}, and position [${result.latitude}, ${result.longitude}] with open-map.`,
         }],
         structuredContent: result,
       };
@@ -63,20 +63,25 @@ export function registerServer(server: McpServer) {
 
   registerAppTool(server, "open-map", {
     title: "Open map",
-    description: "Display an interactive displaymap map for the supplied geographic bounds.",
+    description: "Display an interactive displaymap map for the supplied geographic bounds, with a marker at position or the bounds' center when omitted.",
     inputSchema: {
       north: z.number().min(-90).max(90).describe("Northern latitude of the map bounds"),
       south: z.number().min(-90).max(90).describe("Southern latitude of the map bounds"),
       east: z.number().min(-180).max(180).describe("Eastern longitude of the map bounds"),
       west: z.number().min(-180).max(180).describe("Western longitude of the map bounds"),
+      position: z.tuple([
+        z.number().min(-90).max(90),
+        z.number().min(-180).max(180),
+      ]).optional().describe("Marker position as [latitude, longitude]; defaults to the bounds' center"),
     },
     outputSchema: { ready: z.boolean() },
     _meta: { ui: { resourceUri: RESOURCE_URI } },
-  }, async ({ north, south, east, west }) => {
+  }, async ({ north, south, east, west, position }) => {
+    const [latitude, longitude] = position ?? [(north + south) / 2, (east + west) / 2];
     return {
       content: [{
         type: "text",
-        text: `Interactive map opened for bounds north ${north}, south ${south}, east ${east}, west ${west}.`,
+        text: `Interactive map opened for bounds north ${north}, south ${south}, east ${east}, west ${west}, with a marker at [${latitude}, ${longitude}].`,
       }],
       structuredContent: { ready: true },
     };

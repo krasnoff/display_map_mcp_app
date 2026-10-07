@@ -9,6 +9,7 @@ type MapBounds = {
   south: number;
   east: number;
   west: number;
+  position?: [number, number];
 };
 
 const DEFAULT_BOUNDS: MapBounds = {
@@ -22,7 +23,15 @@ function isMapBounds(value: unknown): value is MapBounds {
   if (!value || typeof value !== "object") return false;
 
   const bounds = value as Record<string, unknown>;
-  return ["north", "south", "east", "west"].every(
+  const position = bounds.position;
+  const validPosition = position === undefined || (
+    Array.isArray(position) && position.length === 2 &&
+    typeof position[0] === "number" && Number.isFinite(position[0]) &&
+    position[0] >= -90 && position[0] <= 90 &&
+    typeof position[1] === "number" && Number.isFinite(position[1]) &&
+    position[1] >= -180 && position[1] <= 180
+  );
+  return validPosition && ["north", "south", "east", "west"].every(
     (key) => typeof bounds[key] === "number" && Number.isFinite(bounds[key]),
   );
 }
@@ -39,7 +48,7 @@ function MapApp() {
         setBounds(input.arguments);
         setStatus("");
       } else {
-        setStatus("The map bounds supplied by the host are invalid.");
+        setStatus("The map bounds or marker position supplied by the host are invalid.");
       }
     };
 
@@ -57,7 +66,11 @@ function MapApp() {
   return (
     <main className="page-shell">
       {status && <p className="status" role="status">{status}</p>}
-      <GNUIMap {...bounds} maptilerApiKey={import.meta.env.MAPTILER_API_KEY} />
+      <GNUIMap
+        {...bounds}
+        maptilerApiKey={import.meta.env.MAPTILER_API_KEY}
+        position={bounds.position ?? [(bounds.north + bounds.south) / 2, (bounds.east + bounds.west) / 2]}
+      />
     </main>
   );
 }

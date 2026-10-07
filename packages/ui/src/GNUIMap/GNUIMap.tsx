@@ -1,9 +1,21 @@
+// eslint-disable-next-line @typescript-eslint/triple-slash-reference
+/// <reference path="../assets.d.ts" />
+
 import { useEffect, useState } from "react";
-import { MapContainer, TileLayer, useMap } from "react-leaflet";
-// @ts-expect-error CSS files are loaded by the bundler and lack TypeScript declarations.
+import { MapContainer, Marker, TileLayer, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
-import { LatLngBoundsExpression } from "leaflet";
+import { Icon, type LatLngBoundsExpression, type LatLngExpression } from "leaflet";
+import markerIconUrl from "leaflet/dist/images/marker-icon.png";
+import markerIconRetinaUrl from "leaflet/dist/images/marker-icon-2x.png";
+import markerShadowUrl from "leaflet/dist/images/marker-shadow.png";
 import { DEFAULT_MAP_STYLE, MAP_STYLE_GROUPS } from "./mapStyles";
+
+const defaultMarkerIcon = new Icon.Default({
+  imagePath: "",
+  iconUrl: markerIconUrl,
+  iconRetinaUrl: markerIconRetinaUrl,
+  shadowUrl: markerShadowUrl,
+});
 
 type MapProps = {
   north: number;
@@ -11,6 +23,7 @@ type MapProps = {
   east: number;
   west: number;
   maptilerApiKey: string;
+  position?: LatLngExpression;
 };
 
 function MapBounds({ bounds }: { bounds: LatLngBoundsExpression }) {
@@ -23,7 +36,7 @@ function MapBounds({ bounds }: { bounds: LatLngBoundsExpression }) {
   return null;
 }
 
-export function GNUIMap({ north, south, east, west, maptilerApiKey }: MapProps) {
+export function GNUIMap({ north, south, east, west, maptilerApiKey, position }: MapProps) {
   const [mapStyle, setMapStyle] = useState(DEFAULT_MAP_STYLE);
   // Leaflet coordinates are [latitude, longitude].
   const bounds: LatLngBoundsExpression = [
@@ -54,6 +67,7 @@ export function GNUIMap({ north, south, east, west, maptilerApiKey }: MapProps) 
       </div>
       <MapContainer bounds={bounds} minZoom={1} style={{ height: "600px", width: "100%" }}>
         <MapBounds bounds={bounds} />
+        {position && <Marker position={position} icon={defaultMarkerIcon} />}
         <TileLayer
           key={mapStyle}
           url={tileUrl}

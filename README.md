@@ -5,7 +5,7 @@ An [MCP App](https://modelcontextprotocol.io/) server that lets compatible AI cl
 The server exposes two MCP tools:
 
 - `geocode-place` converts a place name into coordinates and map bounds.
-- `open-map` displays an interactive DisplayMap map for supplied bounds.
+- `open-map` displays an interactive DisplayMap map for supplied bounds. Its optional `position` property sets the marker as `[latitude, longitude]`; when omitted, the marker uses the bounds' center. Pass the coordinates returned by `geocode-place` to mark the place precisely.
 
 The map interface is a React application packaged as a single HTML MCP resource. The MCP server uses Streamable HTTP and runs on Hono with the Model Context Protocol TypeScript SDK.
 
