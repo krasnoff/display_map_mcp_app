@@ -4,9 +4,6 @@ import { z } from "zod";
 import { geocodePlace } from "./geocode.js";
 import { fetchRoute } from "./osrm-provider.js";
 import appHtml from "./generated/app-html.js";
-import { readFile } from "node:fs/promises";
-import { basename, dirname, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
 
 const RESOURCE_URI = "ui://map/app.html";
 const routeSchema = z.object({
@@ -17,12 +14,6 @@ const routeSchema = z.object({
   distance: z.number().nonnegative().describe("Total route distance in metres"),
   duration: z.number().nonnegative().describe("Estimated travel time in seconds"),
 });
-
-const MODULE_DIRECTORY = dirname(fileURLToPath(import.meta.url));
-const APP_HTML_PATH = resolve(
-  MODULE_DIRECTORY,
-  basename(MODULE_DIRECTORY) === "dist-server" ? "../dist/index.html" : "dist/index.html",
-);
 
 export function registerServer(server: McpServer) {
   server.registerTool("geocode-place", {
