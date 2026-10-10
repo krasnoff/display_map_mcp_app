@@ -2,10 +2,19 @@
 
 An [MCP App](https://modelcontextprotocol.io/) server that lets compatible AI clients find places and display interactive maps using DisplayMap.
 
-The server exposes two MCP tools:
+The server exposes three MCP tools:
 
 - `geocode-place` converts a place name into coordinates and map bounds.
+- `get-osrm-route` fetches a driving route through two or more `[longitude, latitude]` waypoints using OpenRouteService. It returns `positions` in `[latitude, longitude]` order, `distance` in metres, and `duration` in seconds.
 - `open-map` displays an interactive DisplayMap map for supplied bounds. Its optional `position` property sets the marker as `[latitude, longitude]`; when omitted, the marker uses the bounds' center. Pass the coordinates returned by `geocode-place` to mark the place precisely.
+
+To display a driving route, call `get-osrm-route` with `coordinates`, then pass its
+complete structured result as the optional `route` argument to `open-map` alongside
+the map bounds. The map draws the supplied geometry and fits to the route; clicking
+it shows distance and estimated travel time. Omitting `route` displays the usual map.
+The complete route is returned in both `structuredContent` and a JSON text content
+block so clients that expose only text can pass the same object to `open-map`.
+The routing tool requires `OPENROUTESERVICE_API_KEY` in the server environment.
 
 The map interface is a React application packaged as a single HTML MCP resource. The MCP server uses Streamable HTTP and runs on Hono with the Model Context Protocol TypeScript SDK.
 
@@ -239,6 +248,56 @@ Important MCP application files:
 - `packages/ui/src/GNUIMap/GNUIMap.tsx` renders the Leaflet/DisplayMap map.
 
 ## Map services
+
+### Server routing provider
+
+`apps/mcp_app/osrm-provider.ts` exports `fetchRoute(coordinates, options)` for the
+OpenRouteService driving-car API. Set `OPENROUTESERVICE_API_KEY` in the server
+environment, or supply `options.apiKey`. The provider uses a ten-second timeout
+and accepts `options.signal` for cancellation.
+
+```ts
+import { fetchRoute } from "./osrm-provider.js";
+
+const route = await fetchRoute([
+  [8.681495, 49.41461],
+  [8.686507, 49.41943],
+  [8.687872, 49.420318],
+]);
+// route: { positions: [latitude, longitude][], distance: metres, duration: seconds }
+```
+
+Input coordinates follow the API's `[longitude, latitude]` order. The provider
+decodes the JSON response's encoded polyline into the route state format used by
+`OsrmRoute.tsx`. `get-osrm-route` uses this provider on the server; passing its result
+to `open-map` renders the route without another routing request from the browser.
+
+### Shared map routing
+
+The shared `GNUIMap` component accepts optional `routeStart` and `routeEnd` props,
+both in `[latitude, longitude]` order. Supply both to display a driving route:
+
+```tsx
+<GNUIMap
+  north={32.4}
+  south={32.0}
+  east={34.95}
+  west={34.7}
+  maptilerApiKey={maptilerApiKey}
+  routeStart={[32.0853, 34.7818]}
+  routeEnd={[32.3215, 34.8555]}
+/>
+```
+
+The route uses the public FOSSGIS OSRM car endpoint, fits the map to its geometry,
+and shows distance and estimated travel time when clicked. Endpoint changes are
+debounced for one second; pending requests are cancelled on changes or unmount.
+Routing errors appear in a map popup. Omitting either endpoint disables routing.
+These endpoint props are a shared component API; `open-map` instead accepts a
+precomputed `route` object. `GNUIMap` also accepts this object through its `route`
+prop, which takes precedence over `routeStart` and `routeEnd`.
+The public routing service is intended for light usage, with at most one request
+per second; the component debounce does not enforce a limit across maps or users.
 
 Map tiles and place searches use MapTiler and require `MAPTILER_API_KEY`. Map data attribution remains visible in the map. Deployments should comply with the applicable MapTiler and DisplayMap usage policies.
 

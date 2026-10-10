@@ -1,14 +1,16 @@
 // eslint-disable-next-line @typescript-eslint/triple-slash-reference
 /// <reference path="../assets.d.ts" />
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { MapContainer, Marker, TileLayer, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
-import { Icon, type LatLngBoundsExpression, type LatLngExpression } from "leaflet";
+import { Icon, type LatLngBoundsExpression, type LatLngExpression, type LatLngTuple } from "leaflet";
 import markerIconUrl from "leaflet/dist/images/marker-icon.png";
 import markerIconRetinaUrl from "leaflet/dist/images/marker-icon-2x.png";
 import markerShadowUrl from "leaflet/dist/images/marker-shadow.png";
 import { DEFAULT_MAP_STYLE, MAP_STYLE_GROUPS } from "./mapStyles";
+import { OsrmRoute } from "./OsrmRoute";
+import type { RouteData } from "./routeData";
 
 const defaultMarkerIcon = new Icon.Default({
   imagePath: "",
@@ -17,13 +19,18 @@ const defaultMarkerIcon = new Icon.Default({
   shadowUrl: markerShadowUrl,
 });
 
-type MapProps = {
+export type MapProps = {
   north: number;
   south: number;
   east: number;
   west: number;
   maptilerApiKey: string;
   position?: LatLngExpression;
+  /** Driving route endpoints, each in [latitude, longitude] order. Supply both. */
+  routeStart?: LatLngTuple;
+  routeEnd?: LatLngTuple;
+  /** Precomputed OpenRouteService route; takes precedence over route endpoints. */
+  route?: RouteData;
 };
 
 function MapBounds({ bounds }: { bounds: LatLngBoundsExpression }) {
@@ -36,13 +43,13 @@ function MapBounds({ bounds }: { bounds: LatLngBoundsExpression }) {
   return null;
 }
 
-export function GNUIMap({ north, south, east, west, maptilerApiKey, position }: MapProps) {
+export function GNUIMap({ north, south, east, west, maptilerApiKey, position, routeStart, routeEnd, route }: MapProps) {
   const [mapStyle, setMapStyle] = useState(DEFAULT_MAP_STYLE);
   // Leaflet coordinates are [latitude, longitude].
-  const bounds: LatLngBoundsExpression = [
+  const bounds = useMemo<LatLngBoundsExpression>(() => [
     [south, west], // southwest corner
     [north, east], // northeast corner
-  ];
+  ], [south, west, north, east]);
   const tileUrl = `https://api.maptiler.com/maps/${mapStyle}/{z}/{x}/{y}@2x.png?key=${encodeURIComponent(maptilerApiKey)}`;
 
   return (
@@ -67,6 +74,8 @@ export function GNUIMap({ north, south, east, west, maptilerApiKey, position }: 
       </div>
       <MapContainer bounds={bounds} minZoom={1} style={{ height: "600px", width: "100%" }}>
         <MapBounds bounds={bounds} />
+        {route ? <OsrmRoute route={route} /> :
+          routeStart && routeEnd && <OsrmRoute start={routeStart} end={routeEnd} />}
         {position && <Marker position={position} icon={defaultMarkerIcon} />}
         <TileLayer
           key={mapStyle}

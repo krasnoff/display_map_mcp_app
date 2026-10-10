@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { App as McpApp } from "@modelcontextprotocol/ext-apps";
 import "./style.scss";
-import { GNUIMap } from "@workspace/ui";
+import { GNUIMap, isRouteData, type RouteData } from "@workspace/ui";
 
 type MapBounds = {
   north: number;
@@ -10,6 +10,7 @@ type MapBounds = {
   east: number;
   west: number;
   position?: [number, number];
+  route?: RouteData;
 };
 
 const DEFAULT_BOUNDS: MapBounds = {
@@ -31,7 +32,8 @@ function isMapBounds(value: unknown): value is MapBounds {
     typeof position[1] === "number" && Number.isFinite(position[1]) &&
     position[1] >= -180 && position[1] <= 180
   );
-  return validPosition && ["north", "south", "east", "west"].every(
+  const validRoute = bounds.route === undefined || isRouteData(bounds.route);
+  return validPosition && validRoute && ["north", "south", "east", "west"].every(
     (key) => typeof bounds[key] === "number" && Number.isFinite(bounds[key]),
   );
 }
@@ -48,7 +50,7 @@ function MapApp() {
         setBounds(input.arguments);
         setStatus("");
       } else {
-        setStatus("The map bounds or marker position supplied by the host are invalid.");
+        setStatus("The map bounds, marker position, or route supplied by the host are invalid.");
       }
     };
 
