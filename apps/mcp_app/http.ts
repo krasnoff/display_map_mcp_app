@@ -71,18 +71,24 @@ export function createHttpApp(mcpPaths: string | string[] = "/mcp") {
         id: null,
       }, 500);
     } catch (error) {
-      console.error("MCP request failed", error);
-
       if (error instanceof HTTPException) {
         const protocolVersion = context.req.header(PROTOCOL_VERSION_HEADER);
 
         if (error.status !== 404 || !protocolVersion) {
+          console.error("MCP request failed", error);
           const response = error.getResponse();
           return new Response(response.body, {
             status: error.status,
             headers: response.headers,
           });
         }
+
+        console.warn("MCP protocol version rejected", {
+          receivedVersion: protocolVersion,
+          supportedVersions: SUPPORTED_PROTOCOL_VERSIONS,
+          method: context.req.method,
+          path: context.req.path,
+        });
 
         return context.json({
           jsonrpc: "2.0",
@@ -98,6 +104,7 @@ export function createHttpApp(mcpPaths: string | string[] = "/mcp") {
           id: null,
         }, 400);
       }
+      console.error("MCP request failed", error);
       return context.json({
         jsonrpc: "2.0",
         error: { code: -32603, message: "Internal server error" },
