@@ -1,32 +1,32 @@
-import { StreamableHTTPTransport } from "@hono/mcp";
-import { SUPPORTED_PROTOCOL_VERSIONS } from "@modelcontextprotocol/sdk/types.js";
+import { createMcpHandler } from "@modelcontextprotocol/server";
 import { Hono, type Handler } from "hono";
-import { HTTPException } from "hono/http-exception";
 import { createServer } from "./server.js";
 
 const PROTOCOL_VERSION_HEADER = "mcp-protocol-version";
 
 function normalizeProtocolVersionHeader(context: Parameters<Handler>[0]) {
   const value = context.req.header(PROTOCOL_VERSION_HEADER);
-  if (!value || SUPPORTED_PROTOCOL_VERSIONS.includes(value)) return;
+  if (!value || !value.includes(",")) return;
 
   // Repeated HTTP headers can be collapsed to a comma-separated value by a
-  // proxy. @hono/mcp expects one version and otherwise rejects the request.
-  const supportedValue = value
+  // proxy. Collapse identical copies without selecting a different version.
+  const versions = value
     .split(",")
-    .map((version) => version.trim())
-    .find((version) => SUPPORTED_PROTOCOL_VERSIONS.includes(version));
+    .map((version) => version.trim());
+  const version = versions[0];
 
-  if (!supportedValue) return;
+  if (!version || !versions.every((candidate) => candidate === version)) return;
 
   const headers = new Headers(context.req.raw.headers);
-  headers.set(PROTOCOL_VERSION_HEADER, supportedValue);
+  headers.set(PROTOCOL_VERSION_HEADER, version);
   context.req.raw = new Request(context.req.raw, { headers });
 }
 
 export function createHttpApp(mcpPaths: string | string[] = "/mcp") {
   const app = new Hono();
   const paths = Array.isArray(mcpPaths) ? mcpPaths : [mcpPaths];
+  // Serve modern per-request MCP and legacy stateless clients on the same endpoint.
+  const mcpHandler = createMcpHandler(createServer, { responseMode: "json" });
 
   app.get("/", (context) => context.json({
     name: "displaymap-viewer",
@@ -45,7 +45,7 @@ export function createHttpApp(mcpPaths: string | string[] = "/mcp") {
       context.header("Access-Control-Allow-Methods", "POST, GET, DELETE, OPTIONS");
       context.header(
         "Access-Control-Allow-Headers",
-        "content-type, accept, mcp-protocol-version, mcp-session-id",
+        "content-type, accept, mcp-protocol-version, mcp-session-id, mcp-method, mcp-name, mcp-param-cursor, mcp-param-uri",
       );
       context.header("Access-Control-Expose-Headers", "Mcp-Session-Id");
       return context.body(null, 204);
@@ -55,55 +55,9 @@ export function createHttpApp(mcpPaths: string | string[] = "/mcp") {
   const handleMcpRequest: Handler = async (context) => {
     normalizeProtocolVersionHeader(context);
 
-    const server = createServer();
-    const transport = new StreamableHTTPTransport({
-      sessionIdGenerator: undefined,
-      enableJsonResponse: true,
-    });
-
     try {
-      await server.connect(transport);
-      const response = await transport.handleRequest(context);
-
-      return response ?? context.json({
-        jsonrpc: "2.0",
-        error: { code: -32603, message: "The MCP transport returned no response." },
-        id: null,
-      }, 500);
+      return await mcpHandler.fetch(context.req.raw);
     } catch (error) {
-      if (error instanceof HTTPException) {
-        const protocolVersion = context.req.header(PROTOCOL_VERSION_HEADER);
-
-        if (error.status !== 404 || !protocolVersion) {
-          console.error("MCP request failed", error);
-          const response = error.getResponse();
-          return new Response(response.body, {
-            status: error.status,
-            headers: response.headers,
-          });
-        }
-
-        console.warn("MCP protocol version rejected", {
-          receivedVersion: protocolVersion,
-          supportedVersions: SUPPORTED_PROTOCOL_VERSIONS,
-          method: context.req.method,
-          path: context.req.path,
-        });
-
-        return context.json({
-          jsonrpc: "2.0",
-          error: {
-            code: -32000,
-            message: protocolVersion
-              ? "Bad Request: Unsupported protocol version"
-              : "Bad MCP request",
-            data: protocolVersion
-              ? { receivedVersion: protocolVersion, supportedVersions: SUPPORTED_PROTOCOL_VERSIONS }
-              : undefined,
-          },
-          id: null,
-        }, 400);
-      }
       console.error("MCP request failed", error);
       return context.json({
         jsonrpc: "2.0",

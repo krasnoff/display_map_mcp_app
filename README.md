@@ -18,6 +18,11 @@ The routing tool requires `OPENROUTESERVICE_API_KEY` in the server environment.
 
 The map interface is a React application packaged as a single HTML MCP resource. The MCP server uses Streamable HTTP and runs on Hono with the Model Context Protocol TypeScript SDK.
 
+The HTTP endpoint uses the MCP v2 per-request handler to support protocol revision
+`2026-07-28` and older clients through its stateless legacy fallback. Both `/mcp`
+and `/api/mcp` use the same handler. After updating the server, rebuild and redeploy
+before reconnecting a hosted client.
+
 ## Hosted MCP endpoint
 
 The public server is available at:
@@ -128,6 +133,13 @@ Or check only the MCP server:
 
 ```bash
 pnpm --filter @workspace/mcp_app typecheck
+```
+
+To check modern and legacy HTTP connections, route handoff, and UI-resource
+loading without live provider calls, first build the MCP application, then run:
+
+```bash
+node apps/mcp_app/scripts/check-http.mjs
 ```
 
 ## Lint

@@ -1,4 +1,4 @@
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { McpServer } from "@modelcontextprotocol/server";
 import { registerAppResource, registerAppTool, RESOURCE_MIME_TYPE } from "@modelcontextprotocol/ext-apps/server";
 import { z } from "zod";
 import { geocodePlace } from "./geocode.js";
@@ -83,7 +83,7 @@ export function registerServer(server: McpServer) {
     annotations: { readOnlyHint: true, openWorldHint: true },
   }, async ({ coordinates }, extra) => {
     try {
-      const route = await fetchRoute(coordinates, { signal: extra.signal });
+      const route = await fetchRoute(coordinates, { signal: extra.mcpReq.signal });
       return {
         // Include identical JSON for clients that only expose text content to the model.
         content: [{ type: "text", text: JSON.stringify(route) }],
