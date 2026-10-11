@@ -60,6 +60,9 @@ Build every application and shared package in the monorepo:
 pnpm build
 ```
 
+This includes the AI SDK tool package in `apps/apps_sdk`, compiling its
+TypeScript exports and generating type declarations in `apps/apps_sdk/dist`.
+
 To build only the MCP application:
 
 ```bash
@@ -115,7 +118,7 @@ pnpm --filter @workspace/mcp_app dev
 
 Server-side TypeScript changes restart the development server automatically. After changing the React UI, rerun `build:ui` and `generate:html` so the server embeds the latest UI.
 
-To run all workspace development tasks, including the separate Vite preview application, use:
+To run all configured workspace development tasks, use:
 
 ```bash
 pnpm dev
@@ -244,7 +247,7 @@ Claude should call `geocode-place`, pass the returned bounds to `open-map`, and 
 ```text
 apps/
   mcp_app/       MCP server, embedded React map UI, and Vercel function
-  apps_sdk/      Standalone Vite preview application
+  apps_sdk/      AI SDK tool package
 packages/
   ui/            Shared React/Leaflet map component
   utils/         Shared utilities
